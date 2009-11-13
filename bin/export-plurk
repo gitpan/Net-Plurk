@@ -1,0 +1,53 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Net::Plurk::Dumper;
+
+
+
+use Getopt::Long;
+my ( $plurk_id , $passwd , $export_type );
+GetOptions( 
+    'id=s' => \$plurk_id ,
+    'password=s' => \$passwd,
+    'export=s' => \$export_type
+);
+
+unless ( $plurk_id ) {
+    print <<END
+    Usage:  
+        perl -Ilib bin/export-plurk --id=your_plurk_id --export=xml|text|json
+
+END
+}
+
+binmode STDOUT,":utf8";
+
+my $p = Net::Plurk::Dumper->new( id => $plurk_id , password => $passwd , debug => 1 );
+
+my $p_friends = $p->friends;
+
+print join("\n", keys %$p_friends );
+
+my $plurks = $p->get_plurks;
+
+print "get " , scalar( @$plurks ) , " items \n";
+
+for my $plurk ( @$plurks ) {
+
+    print $plurk->{user_id};
+    print  ": " . $plurk->{content_raw} . "\n";
+
+    my $plurk_res = $p->get_responses( $plurk->{plurk_id} );
+    my $friends = $plurk_res->{friends};
+
+    for my $response ( @{ $plurk_res->{responses} }  ) {
+
+        print " " x 4;
+        # print $friends->{  $response->{user_id}  }->{display_name};
+        print $friends->{  $response->{user_id}  }->{nick_name};
+        print ": ";
+        print $response->{content_raw} . "\n";
+
+    }
+}
