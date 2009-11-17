@@ -1,19 +1,16 @@
 package Net::Plurk;
-use JSON;
+use common::sense;
+use JSON qw(encode_json);
 use LWP::UserAgent;
-use HTTP::Cookies;
-use DateTime;
-# use JE;
-use warnings;
-use strict;
+use DateTime::Tiny;
 
 =head1 NAME
 
-Net::Plurk - Dump plurks (or post plurk)
+Net::Plurk - Plurk API
 
 =cut
 
-our $VERSION = 1258308569.409709 ;
+our $VERSION = 9.32115 ;
 
 =head1 SYNOPSIS
 
@@ -31,10 +28,6 @@ our $VERSION = 1258308569.409709 ;
 
 
 =head1 DESCRIPTIONS
-
-=head1 Accessors
-
-=head2 settings
 
 =head1 FUNCTIONS
 
@@ -54,34 +47,39 @@ post parameters to plurk api , return decoded json
 sub req_json {
     my $self = shift;
     my ( $url , $param ) = @_;
+
+    $url = base_url . $url unless $url =~ /^http:/;
     my $req  = $self->ua->post( $url , $param );
-    my $reqq = $req->request;
+
     my $json = $req->decoded_content;
-    # hate new Date.
-    $json =~ s{new Date\("(.*?)"\)}{"$1"}g;
-    return decode_json( $json ) if $json =~ /^\{/;
-    return $json; # not json
+
+    my $data = decode_json( $json );
+
+    if (ref($data->{users}) eq "HASH") {
+        while (my ($k, $v) = each %{ $data->{users} }) {
+            $self->{heap}{users}{$k} = $v;
+        }
+    }
+
+    return $data;
 }
 
 =head2 new
-
-
 
 =cut
 
 sub new {
     my $self = bless {} , shift;
-    my $cookie_jar = HTTP::Cookies->new( file => "$ENV{HOME}/lwp_cookies.dat", autosave => 1 );
-    my $ua = LWP::UserAgent->new( cookie_jar => $cookie_jar );
-
+    my $ua = LWP::UserAgent->new( cookie_jar => {} );
     $self->ua( $ua );
+    $self->{heap} = {};
     return $self;
 }
 
 
 =head2 ua
 
-user agent
+User agent, a LWP::UserAgent object.
 
 =cut
 
@@ -89,6 +87,23 @@ sub ua {
     my $self = shift;
     $self->{ua} = shift if @_;
     return $self->{ua};
+}
+
+
+=head2 post( request path , arguments )
+
+=cut
+
+sub post {
+    my $self = shift;
+    my $path = shift;
+    $self->ua->post(base_url . $path, @_);
+}
+
+sub decode_json($) {
+    my $json = shift;
+    $json =~ s{new Date\("(.*?)"\)}{"$1"}g;
+    JSON::decode_json($json);
 }
 
 =head2 login( username , password )
@@ -101,7 +116,8 @@ sub login {
     my $self = shift;
     my $nick = shift;
     my $pass = shift;
-    my $res = $self->ua->post( base_url . '/Users/login' , {
+
+    my $res = $self->post('/Users/login' , {
         nick_name => $nick,
         password => $pass,
     });
@@ -206,33 +222,39 @@ plurk format:
 sub get_owner_latest_plurks {
     my $self = shift;
 
-    my $now = DateTime->now;
-    my $res = $self->ua->post('http://www.plurk.com/TimeLine/getPlurks',  {
+    my $now = DateTime::Tiny->now;
+    my $res = $self->post('/TimeLine/getPlurks',  {
         offset  => qq{"$now"},
-        user_id => $self->meta->{settings}->{user_id},
+        user_id => $self->meta->{settings}->{user_id}
     });
-    my $json = $res->decoded_content;
-    $json =~ s{new Date\("(.*?)"\)}{"$1"}g;
-    my $plurks = decode_json( $json );
+
+    my $plurks = decode_json($res->decoded_content);
+
+    # Join plurk user info.
+    my $users = $self->{heap}{users};
+    for my $pu (@$plurks) {
+        $pu->{owner} = $users->{$pu->{owner_id}} if $users->{$pu->{owner_id}};
+    }
+
     return $plurks;
 }
 
 sub get_unread_plurks {
     my $self = shift;
 
-    my $now = DateTime->now;
-    my $res = $self->ua->post('http://www.plurk.com/Users/getUnreadPlurks', {
-        # This tess plurk.com to include all required user info in the response.
-        known_friends => "[]"
-    });
-    my $json = $res->decoded_content;
-    $json =~ s{new Date\("(.*?)"\)}{"$1"}g;
-    my $response = decode_json( $json );
+    my $response  = $self->req_json(
+        '/Users/getUnreadPlurks' => {
+            # This tells plurk.com to include all required user info in the response.
+            known_friends => "[]"
+        }
+    );
 
     my $plurks = $response->{unread_plurks};
+
     # Join plurk user info.
+    my $users = $self->{heap}{users};
     for my $pu (@$plurks) {
-        $pu->{owner} = $response->{users}{$pu->{owner_id}};
+        $pu->{owner} = $users->{$pu->{owner_id}} if $users->{$pu->{owner_id}};
     }
 
     return $plurks;
@@ -246,16 +268,12 @@ http://www.plurk.com/Users/getOwnProfileData
 
 sub get_own_profile_data {
     my $self = shift;
-    my $friend_ids = shift;
-    my $req = $self->ua->post( 'http://www.plurk.com/Users/getOwnProfileData' , {
+    my $friend_ids = shift || [];
+
+    $self->req_json('/Users/getOwnProfileData' => {
         known_friends =>  encode_json( $friend_ids ),
     });
-
-    my $json = $req->decoded_content;
-    $json =~ s{new Date\("(.*?)"\)}{"$1"}g;
-    return decode_json( $json );
 }
-
 
 =head2 get_response_n( user_id , plurk_ids )
 
@@ -386,18 +404,41 @@ response:
 sub add_plurk {
     my $self = shift;
     my %args = @_;
-    return $self->req_json( 'http://www.plurk.com/TimeLine/addPlurk', {
-            content     => "",
-            no_comments => '0',
-            lang        => 'tr_ch',
-            posted      => '"' . DateTime->now . '"',
-            qualifier   => ':',
-            uid         => $self->meta->{settings}->{user_id},
-            %args,
-        } );
+
+    $self->req_json('/TimeLine/addPlurk', {
+        content     => "",
+        no_comments => '0',
+        lang        => 'tr_ch',
+        posted      => '"' . DateTime::Tiny->now . '"',
+        qualifier   => ':',
+        uid         => $self->meta->{settings}->{user_id},
+        %args,
+    });
 }
 
 
+=head2 delete_plurk( $plurk_id )
+
+http://www.plurk.com/TimeLine/addPlurk
+
+post:
+    plurk_id: 160357721
+
+response (not json):
+
+    "ok"
+
+=cut
+
+sub delete_plurk {
+    my $self = shift;
+    my $id   = shift;
+
+    return unless $id;
+    my $r = $self->post('/TimeLine/deletePlurk', { plurk_id => $id });
+
+    return $r->decoded_content;
+}
 
 =head1 AUTHOR
 

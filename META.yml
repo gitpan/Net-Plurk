@@ -1,9 +1,10 @@
 ---
-abstract: 'Dump plurks (or post plurk)'
+abstract: 'Plurk API'
 author:
   - 'Cornelius, C<< <cornelius.howl at gmail.com> >>'
 build_requires:
   ExtUtils::MakeMaker: 6.42
+  Text::Greeking::zh_TW: 0.0.4
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
@@ -18,11 +19,12 @@ no_index:
     - inc
     - t
 requires:
-  DateTime: 0
+  DateTime::Tiny: 0
   HTTP::Cookies: 0
   JSON: 0
   LWP::UserAgent: 0
   Test::More: 0
+  common::sense: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 1258308569.40971
+version: 9.32115
