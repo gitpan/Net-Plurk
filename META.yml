@@ -1,30 +1,26 @@
----
-abstract: 'Plurk API'
+--- #YAML:1.0
+name:               Net-Plurk
+version:            0.06
+abstract:           The great new Net::Plurk!
 author:
-  - 'Cornelius, C<< <cornelius.howl at gmail.com> >>'
-build_requires:
-  ExtUtils::MakeMaker: 6.42
-  Text::Greeking::zh_TW: 0.0.4
+    - Cheng-Lung Sung <clsung@cpan.org>
+license:            perl
+distribution_type:  module
 configure_requires:
-  ExtUtils::MakeMaker: 6.42
-distribution_type: module
-generated_by: 'Module::Install version 0.91'
-license: perl
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
-name: Net-Plurk
-no_index:
-  directory:
-    - inc
-    - t
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
 requires:
-  DateTime::Tiny: 0
-  HTTP::Cookies: 0
-  JSON: 0
-  LWP::UserAgent: 0
-  Test::More: 0
-  common::sense: 0
-resources:
-  license: http://dev.perl.org/licenses/
-version: 9.32115
+    AnyEvent::HTTP:       0
+    DateTime::Format::Strptime:  0
+    JSON::Any:            0
+    Moose:                0
+    Test::More:           0
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.56
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

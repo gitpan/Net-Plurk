@@ -1,21 +1,23 @@
-use inc::Module::Install;
 use strict;
 use warnings;
-name           'Net-Plurk';
-all_from       'lib/Net/Plurk.pm';
+use ExtUtils::MakeMaker;
 
-requires(
-    'Test::More'     => 0,
-    'JSON'           => 0,
-    'LWP::UserAgent' => 0,
-    'HTTP::Cookies'  => 0,
-    'DateTime::Tiny' => 0,
-    'common::sense'  => 0,
+WriteMakefile(
+    NAME                => 'Net::Plurk',
+    AUTHOR              => 'Cheng-Lung Sung <clsung@cpan.org>',
+    VERSION_FROM        => 'lib/Net/Plurk.pm',
+    ABSTRACT_FROM       => 'lib/Net/Plurk.pm',
+    ($ExtUtils::MakeMaker::VERSION >= 6.3002
+      ? ('LICENSE'=> 'perl')
+      : ()),
+    PL_FILES            => {},
+    PREREQ_PM => {
+        'Test::More' => 0,
+        'AnyEvent::HTTP' => 0,
+        'JSON::Any' => 0,
+        'DateTime::Format::Strptime' => 0,
+        'Moose' => 0
+    },
+    dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+    clean               => { FILES => 'Net-Plurk-*' },
 );
-
-test_requires
-    "Text::Greeking::zh_TW" => "0.0.4";
-
-license 'perl';
-# install_script 'myscript';
-WriteAll;
