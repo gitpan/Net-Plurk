@@ -16,6 +16,7 @@ WriteMakefile(
         'AnyEvent::HTTP' => 0,
         'JSON::Any' => 0,
         'DateTime::Format::Strptime' => 0,
+        'URI' => 0,
         'Moose' => 0
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Net-Plurk
-version:            0.06
+version:            0.07
 abstract:           The great new Net::Plurk!
 author:
     - Cheng-Lung Sung <clsung@cpan.org>
@@ -16,6 +16,7 @@ requires:
     JSON::Any:            0
     Moose:                0
     Test::More:           0
+    URI:                  0
 no_index:
     directory:
         - t
