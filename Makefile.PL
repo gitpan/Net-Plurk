@@ -11,9 +11,11 @@ WriteMakefile(
       ? ('LICENSE'=> 'perl')
       : ()),
     PL_FILES            => {},
+    MIN_PERL_VERSION => 5.010001,
     PREREQ_PM => {
         'Test::More' => 0,
         'AnyEvent::HTTP' => 0,
+        'namespace::autoclean' => 0,
         'JSON::Any' => 0,
         'DateTime::Format::Strptime' => 0,
         'URI' => 0,
