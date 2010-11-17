@@ -1,29 +1,22 @@
 --- #YAML:1.0
-name:               Net-Plurk
-version:            0.08
-abstract:           A perl interface to Plurk API
-author:
+name:                Net-Plurk
+version:             0.09
+abstract:            A perl interface to Plurk API
+license:             perl
+author:              
     - Cheng-Lung Sung <clsung@cpan.org>
-license:            perl
-distribution_type:  module
-configure_requires:
-    ExtUtils::MakeMaker:  0
-build_requires:
-    ExtUtils::MakeMaker:  0
-requires:
-    AnyEvent::HTTP:       0
-    DateTime::Format::Strptime:  0
-    JSON::Any:            0
-    Moose:                0
-    namespace::autoclean:  0
-    perl:                 5.010001
-    Test::More:           0
-    URI:                  0
-no_index:
-    directory:
-        - t
-        - inc
-generated_by:       ExtUtils::MakeMaker version 6.56
+generated_by:        ExtUtils::MakeMaker version 6.42
+distribution_type:   module
+requires:     
+    AnyEvent::HTTP:                0
+    DateTime::Format::Strptime:    0
+    HTTP::Lite:                    0
+    JSON::Any:                     0
+    Moose:                         0
+    namespace::autoclean:          0
+    Net::SSLeay:                   0
+    Test::More:                    0
+    URI:                           0
 meta-spec:
-    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
-    version:  1.4
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3
