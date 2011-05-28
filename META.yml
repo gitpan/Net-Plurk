@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Net-Plurk
-version:             0.10
+version:             0.11
 abstract:            A perl interface to Plurk API
 license:             perl
 author:              
@@ -13,6 +13,7 @@ requires:
     Digest::HMAC_SHA1:             0
     HTTP::Lite:                    0
     JSON::Any:                     0
+    Math::Base36:                  0
     Moose:                         0
     namespace::autoclean:          0
     Net::OAuth:                    0.27
